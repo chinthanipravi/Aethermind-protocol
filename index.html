@@ -1,0 +1,1221 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AetherMind Protocol | Autonomous Neural Edge Mesh</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        cyber: {
+                            bg: '#0a0d14',
+                            card: '#0f172a',
+                            border: 'rgba(0, 243, 255, 0.2)',
+                            cyan: '#00f3ff',
+                            violet: '#8a2be2',
+                            emerald: '#00ff88',
+                            rose: '#ff0055',
+                            gold: '#ffb700'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'Fira Code', 'monospace'],
+                        display: ['Orbitron', 'sans-serif']
+                    },
+                    animation: {
+                        'pulse-glow': 'pulseGlow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'scanline': 'scanline 8s linear infinite',
+                        'float': 'float 6s ease-in-out infinite'
+                    },
+                    keyframes: {
+                        pulseGlow: {
+                            '0%, 100%': { opacity: 1, filter: 'drop-shadow(0 0 8px rgba(0, 243, 255, 0.6))' },
+                            '50%': { opacity: 0.5, filter: 'drop-shadow(0 0 2px rgba(0, 243, 255, 0.2))' }
+                        },
+                        scanline: {
+                            '0%': { transform: 'translateY(-100%)' },
+                            '100%': { transform: 'translateY(1000%)' }
+                        },
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0px)' },
+                            '50%': { transform: 'translateY(-8px)' }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Orbitron:wght@500;700;900&display=swap" rel="stylesheet">
+
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        body {
+            background-color: #0a0d14;
+            color: #e2e8f0;
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+            background-image: 
+                radial-gradient(circle at 15% 15%, rgba(138, 43, 226, 0.12) 0%, transparent 40%),
+                radial-gradient(circle at 85% 85%, rgba(0, 243, 255, 0.1) 0%, transparent 45%),
+                linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+            background-size: 100% 100%, 100% 100%, 40px 40px, 40px 40px;
+        }
+
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.7);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(0, 243, 255, 0.18);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+
+        .glass-panel-glow {
+            background: rgba(15, 23, 42, 0.75);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(0, 243, 255, 0.4);
+            box-shadow: 0 0 20px rgba(0, 243, 255, 0.15), inset 0 0 15px rgba(138, 43, 226, 0.1);
+        }
+
+        .glow-text-cyan {
+            text-shadow: 0 0 10px rgba(0, 243, 255, 0.6), 0 0 20px rgba(0, 243, 255, 0.3);
+        }
+
+        .glow-text-violet {
+            text-shadow: 0 0 10px rgba(138, 43, 226, 0.6), 0 0 20px rgba(138, 43, 226, 0.3);
+        }
+
+        .glow-text-emerald {
+            text-shadow: 0 0 10px rgba(0, 255, 136, 0.6), 0 0 20px rgba(0, 255, 136, 0.3);
+        }
+
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(10, 13, 20, 0.8);
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(0, 243, 255, 0.3);
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: rgba(0, 243, 255, 0.6);
+        }
+
+        /* Range slider styling */
+        input[type=range] {
+            -webkit-appearance: none;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            height: 6px;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 18px;
+            width: 18px;
+            border-radius: 50%;
+            background: #00f3ff;
+            cursor: pointer;
+            box-shadow: 0 0 10px #00f3ff;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between selection:bg-cyber-cyan selection:text-black">
+
+    <!-- Toast Notification Overlay -->
+    <div id="toastContainer" class="fixed top-5 right-5 z-50 flex flex-col gap-3 pointer-events-none"></div>
+
+    <!-- TOP NAVIGATION BAR -->
+    <header class="sticky top-0 z-40 w-full border-b border-cyber-border/40 glass-panel backdrop-blur-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="relative flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-cyber-cyan/20 to-cyber-violet/30 border border-cyber-cyan/50 shadow-lg shadow-cyber-cyan/10">
+                    <i data-lucide="cpu" class="w-6 h-6 text-cyber-cyan animate-pulse"></i>
+                </div>
+                <div>
+                    <span class="font-display font-black text-lg tracking-wider text-white flex items-center gap-2">
+                        AETHERMIND <span class="text-xs px-2 py-0.5 rounded-full bg-cyber-cyan/10 border border-cyber-cyan/40 text-cyber-cyan font-mono">PROTO-v4.9</span>
+                    </span>
+                    <p class="text-[10px] text-gray-400 font-mono tracking-widest uppercase">Autonomous Neural Edge Mesh</p>
+                </div>
+            </div>
+
+            <!-- Quick Nav Links -->
+            <nav class="hidden md:flex items-center space-x-8 text-sm font-medium">
+                <a href="#overview" class="text-gray-300 hover:text-cyber-cyan transition-colors flex items-center gap-1.5"><i data-lucide="layers" class="w-4 h-4"></i> Architecture</a>
+                <a href="#mesh-visualizer" class="text-gray-300 hover:text-cyber-cyan transition-colors flex items-center gap-1.5"><i data-lucide="network" class="w-4 h-4"></i> Live Visualizer</a>
+                <a href="#analytics" class="text-gray-300 hover:text-cyber-cyan transition-colors flex items-center gap-1.5"><i data-lucide="activity" class="w-4 h-4"></i> Telemetry & Mining</a>
+                <a href="#code-optimizer" class="text-gray-300 hover:text-cyber-cyan transition-colors flex items-center gap-1.5"><i data-lucide="terminal" class="w-4 h-4"></i> AI NAS Terminal</a>
+                <a href="#simulator" class="text-gray-300 hover:text-cyber-cyan transition-colors flex items-center gap-1.5"><i data-lucide="sliders" class="w-4 h-4"></i> Node Simulator</a>
+            </nav>
+
+            <!-- Network Status Pill -->
+            <div class="flex items-center gap-3">
+                <div class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-950/60 border border-emerald-500/40 text-xs font-mono text-emerald-400 shadow-sm shadow-emerald-500/20">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+                    <span>SWARM ONLINE</span>
+                </div>
+                <button onclick="triggerGlobalReroute()" class="px-3.5 py-1.5 text-xs font-mono font-semibold rounded-lg bg-cyber-cyan/10 hover:bg-cyber-cyan/20 border border-cyber-cyan/50 text-cyber-cyan transition-all hover:shadow-[0_0_15px_rgba(0,243,255,0.4)] active:scale-95">
+                    REROUTE MESH
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- HERO SECTION -->
+    <section id="overview" class="relative pt-10 pb-12 overflow-hidden">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-4xl mx-auto mb-10">
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyber-violet/10 border border-cyber-violet/40 text-cyber-violet text-xs font-mono uppercase tracking-widest mb-4">
+                    <i data-lucide="zap" class="w-3.5 h-3.5 text-cyber-violet"></i> Zero Cloud Server Dependency Architecture
+                </div>
+                <h1 class="font-display text-4xl sm:text-6xl font-black tracking-tight text-white mb-6 leading-tight">
+                    DECENTRALIZED <span class="bg-gradient-to-r from-cyber-cyan via-cyber-violet to-cyber-emerald bg-clip-text text-transparent glow-text-cyan">COGNITIVE MESH</span> PROTOCOL
+                </h1>
+                <p class="text-gray-300 text-base sm:text-lg leading-relaxed max-w-3xl mx-auto">
+                    A self-evolving edge network integrating P2P Dynamic Swarm Routing, WASM Micro-Agents, Zero-Knowledge Stream Mining, and Federated Swarm AI with Neural Architecture Search (NAS).
+                </p>
+                <div class="mt-8 flex flex-wrap justify-center gap-4">
+                    <a href="#mesh-visualizer" class="px-6 py-3 rounded-xl bg-gradient-to-r from-cyber-cyan to-blue-600 text-black font-semibold text-sm shadow-lg shadow-cyber-cyan/25 hover:shadow-cyber-cyan/40 transition-all transform hover:-translate-y-0.5 flex items-center gap-2">
+                        <i data-lucide="play" class="w-4 h-4 fill-current"></i> Open Dynamic Visualizer
+                    </a>
+                    <a href="#code-optimizer" class="px-6 py-3 rounded-xl glass-panel hover:bg-slate-800/80 text-cyber-cyan border border-cyber-cyan/40 font-medium text-sm transition-all flex items-center gap-2">
+                        <i data-lucide="code" class="w-4 h-4"></i> Inspect Self-Healing NAS
+                    </a>
+                </div>
+            </div>
+
+            <!-- LIVE METRICS BANNER -->
+            <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+                <div class="glass-panel p-4 rounded-2xl border-l-4 border-l-cyber-cyan relative overflow-hidden group">
+                    <div class="text-xs text-gray-400 font-mono uppercase tracking-wider flex items-center justify-between">
+                        Active Mesh Nodes <i data-lucide="cpu" class="w-4 h-4 text-cyber-cyan"></i>
+                    </div>
+                    <div id="metricNodes" class="font-display text-2xl sm:text-3xl font-bold text-white mt-2 glow-text-cyan">
+                        142,890
+                    </div>
+                    <div class="text-[11px] text-emerald-400 mt-1 flex items-center gap-1 font-mono">
+                        <i data-lucide="trending-up" class="w-3 h-3"></i> +1,240 / hr
+                    </div>
+                </div>
+
+                <div class="glass-panel p-4 rounded-2xl border-l-4 border-l-cyber-violet relative overflow-hidden group">
+                    <div class="text-xs text-gray-400 font-mono uppercase tracking-wider flex items-center justify-between">
+                        Global Compute <i data-lucide="activity" class="w-4 h-4 text-cyber-violet"></i>
+                    </div>
+                    <div id="metricFlops" class="font-display text-2xl sm:text-3xl font-bold text-white mt-2 glow-text-violet">
+                        84.6 EFLOPS
+                    </div>
+                    <div class="text-[11px] text-cyber-cyan mt-1 flex items-center gap-1 font-mono">
+                        <i data-lucide="shield-check" class="w-3 h-3"></i> 99.98% Available
+                    </div>
+                </div>
+
+                <div class="glass-panel p-4 rounded-2xl border-l-4 border-l-cyber-emerald relative overflow-hidden group">
+                    <div class="text-xs text-gray-400 font-mono uppercase tracking-wider flex items-center justify-between">
+                        Mesh Latency <i data-lucide="gauge" class="w-4 h-4 text-cyber-emerald"></i>
+                    </div>
+                    <div id="metricLatency" class="font-display text-2xl sm:text-3xl font-bold text-white mt-2 glow-text-emerald">
+                        2.4 ms
+                    </div>
+                    <div class="text-[11px] text-emerald-400 mt-1 flex items-center gap-1 font-mono">
+                        <i data-lucide="zap" class="w-3 h-3"></i> Sub-5ms Subnets
+                    </div>
+                </div>
+
+                <div class="glass-panel p-4 rounded-2xl border-l-4 border-l-cyber-rose relative overflow-hidden group">
+                    <div class="text-xs text-gray-400 font-mono uppercase tracking-wider flex items-center justify-between">
+                        Dark Data Mined <i data-lucide="database" class="w-4 h-4 text-cyber-rose"></i>
+                    </div>
+                    <div id="metricMined" class="font-display text-2xl sm:text-3xl font-bold text-white mt-2 text-rose-400">
+                        18.4 TB/s
+                    </div>
+                    <div class="text-[11px] text-purple-400 mt-1 flex items-center gap-1 font-mono">
+                        <i data-lucide="lock" class="w-3 h-3"></i> 100% Zero-Knowledge
+                    </div>
+                </div>
+
+                <div class="col-span-2 md:col-span-1 glass-panel p-4 rounded-2xl border-l-4 border-l-cyber-gold relative overflow-hidden group">
+                    <div class="text-xs text-gray-400 font-mono uppercase tracking-wider flex items-center justify-between">
+                        NAS Optimization <i data-lucide="sparkles" class="w-4 h-4 text-cyber-gold"></i>
+                    </div>
+                    <div id="metricOptimization" class="font-display text-2xl sm:text-3xl font-bold text-white mt-2 text-yellow-400">
+                        98.7 %
+                    </div>
+                    <div class="text-[11px] text-yellow-300 mt-1 flex items-center gap-1 font-mono">
+                        <i data-lucide="refresh-cw" class="w-3 h-3 animate-spin"></i> Live Self-Healing
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ARCHITECTURE MAP PILLARS -->
+    <section class="py-12 relative">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col md:flex-row md:items-end justify-between mb-8">
+                <div>
+                    <h2 class="font-display text-2xl sm:text-3xl font-bold text-white flex items-center gap-3">
+                        <i data-lucide="box" class="text-cyber-cyan"></i> Core Technological Architecture
+                    </h2>
+                    <p class="text-gray-400 text-sm mt-1">Four synergistic layers powering next-generation autonomous edge intelligence.</p>
+                </div>
+                <div class="mt-4 md:mt-0 flex gap-2 font-mono text-xs">
+                    <button onclick="filterPillars('all')" class="pillar-tab-btn active px-3 py-1.5 rounded-lg bg-cyber-cyan/20 border border-cyber-cyan text-cyber-cyan">All Pillars</button>
+                    <button onclick="filterPillars('network')" class="pillar-tab-btn px-3 py-1.5 rounded-lg glass-panel hover:border-cyber-cyan/50 text-gray-300">Networking</button>
+                    <button onclick="filterPillars('ai')" class="pillar-tab-btn px-3 py-1.5 rounded-lg glass-panel hover:border-cyber-cyan/50 text-gray-300">Swarm AI</button>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6" id="pillarsGrid">
+                <!-- Pillar 1 -->
+                <div class="pillar-card glass-panel p-6 rounded-2xl hover:border-cyber-cyan transition-all group duration-300" data-category="network">
+                    <div class="w-12 h-12 rounded-xl bg-cyber-cyan/10 border border-cyber-cyan/30 flex items-center justify-center text-cyber-cyan mb-4 group-hover:scale-110 transition-transform">
+                        <i data-lucide="share-2" class="w-6 h-6"></i>
+                    </div>
+                    <span class="text-xs font-mono text-cyber-cyan uppercase tracking-wider">Layer 01</span>
+                    <h3 class="text-lg font-bold text-white mt-1 mb-2">Swarm Dynamic Routing</h3>
+                    <p class="text-gray-400 text-xs leading-relaxed mb-4">
+                        Eliminates centralized ISP servers. Devices form peer-to-peer mesh links, using real-time packet telemetry to predict signal dropouts 120ms in advance.
+                    </p>
+                    <div class="pt-3 border-t border-slate-800 flex items-center justify-between text-[11px] font-mono text-gray-400">
+                        <span>Latency Impact</span>
+                        <span class="text-cyber-emerald font-bold">-68% Overhead</span>
+                    </div>
+                </div>
+
+                <!-- Pillar 2 -->
+                <div class="pillar-card glass-panel p-6 rounded-2xl hover:border-cyber-violet transition-all group duration-300" data-category="network">
+                    <div class="w-12 h-12 rounded-xl bg-cyber-violet/10 border border-cyber-violet/30 flex items-center justify-center text-cyber-violet mb-4 group-hover:scale-110 transition-transform">
+                        <i data-lucide="file-code" class="w-6 h-6"></i>
+                    </div>
+                    <span class="text-xs font-mono text-cyber-violet uppercase tracking-wider">Layer 02</span>
+                    <h3 class="text-lg font-bold text-white mt-1 mb-2">WASM Micro-Agents</h3>
+                    <p class="text-gray-400 text-xs leading-relaxed mb-4">
+                        Ultra-lightweight sandboxed WebAssembly execution environments that run safely in background threads across smartphones, routers, and EVs.
+                    </p>
+                    <div class="pt-3 border-t border-slate-800 flex items-center justify-between text-[11px] font-mono text-gray-400">
+                        <span>Memory Footprint</span>
+                        <span class="text-cyber-cyan font-bold">&lt; 1.8 MB / Node</span>
+                    </div>
+                </div>
+
+                <!-- Pillar 3 -->
+                <div class="pillar-card glass-panel p-6 rounded-2xl hover:border-cyber-rose transition-all group duration-300" data-category="ai">
+                    <div class="w-12 h-12 rounded-xl bg-rose-500/10 border border-rose-500/30 flex items-center justify-center text-rose-400 mb-4 group-hover:scale-110 transition-transform">
+                        <i data-lucide="shield-lock" class="w-6 h-6"></i>
+                    </div>
+                    <span class="text-xs font-mono text-rose-400 uppercase tracking-wider">Layer 03</span>
+                    <h3 class="text-lg font-bold text-white mt-1 mb-2">Dark Data Stream Mining</h3>
+                    <p class="text-gray-400 text-xs leading-relaxed mb-4">
+                        Extracts ambient RF signals, latency fluctuations, and environmental telemetry directly at the edge. Raw personal data is never transmitted.
+                    </p>
+                    <div class="pt-3 border-t border-slate-800 flex items-center justify-between text-[11px] font-mono text-gray-400">
+                        <span>Privacy Level</span>
+                        <span class="text-cyber-emerald font-bold">100% Zero-Knowledge</span>
+                    </div>
+                </div>
+
+                <!-- Pillar 4 -->
+                <div class="pillar-card glass-panel p-6 rounded-2xl hover:border-cyber-emerald transition-all group duration-300" data-category="ai">
+                    <div class="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 mb-4 group-hover:scale-110 transition-transform">
+                        <i data-lucide="git-merge" class="w-6 h-6"></i>
+                    </div>
+                    <span class="text-xs font-mono text-emerald-400 uppercase tracking-wider">Layer 04</span>
+                    <h3 class="text-lg font-bold text-white mt-1 mb-2">Federated AI & NAS</h3>
+                    <p class="text-gray-400 text-xs leading-relaxed mb-4">
+                        Neural Architecture Search (NAS) dynamically rewrites protocol WASM modules in real-time, continuously optimizing network latency and packet stability.
+                    </p>
+                    <div class="pt-3 border-t border-slate-800 flex items-center justify-between text-[11px] font-mono text-gray-400">
+                        <span>Self-Healing Engine</span>
+                        <span class="text-cyber-gold font-bold">Autonomous Rewrites</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CANVAS MESH VISUALIZER SECTION -->
+    <section id="mesh-visualizer" class="py-12 relative">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="glass-panel-glow rounded-3xl p-6 relative overflow-hidden">
+                <!-- Header Controls -->
+                <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="w-3 h-3 rounded-full bg-cyber-cyan animate-ping"></span>
+                            <h2 class="font-display text-2xl font-bold text-white">Live Edge Mesh Visualizer</h2>
+                        </div>
+                        <p class="text-xs text-gray-400 mt-1 font-mono">Interactive physics-based node cluster simulation with streaming telemetry packets.</p>
+                    </div>
+
+                    <!-- Canvas Controls -->
+                    <div class="flex flex-wrap items-center gap-2">
+                        <button onclick="addRandomNode()" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-cyber-cyan/30 text-cyber-cyan text-xs font-mono flex items-center gap-1.5 transition-all">
+                            <i data-lucide="plus-circle" class="w-4 h-4"></i> Add Node
+                        </button>
+                        <button onclick="simulateDisruption()" class="px-3 py-2 rounded-xl bg-rose-950/80 hover:bg-rose-900 border border-rose-500/50 text-rose-300 text-xs font-mono flex items-center gap-1.5 transition-all">
+                            <i data-lucide="alert-triangle" class="w-4 h-4"></i> Simulate Attack / Disruption
+                        </button>
+                        <button onclick="triggerGlobalReroute()" class="px-3 py-2 rounded-xl bg-cyber-cyan/20 hover:bg-cyber-cyan/30 border border-cyber-cyan/60 text-cyber-cyan text-xs font-mono flex items-center gap-1.5 transition-all">
+                            <i data-lucide="refresh-cw" class="w-4 h-4"></i> AI Auto-Reroute
+                        </button>
+                        <button onclick="toggleDataMiningStream()" id="toggleMiningBtn" class="px-3 py-2 rounded-xl bg-emerald-950/80 border border-emerald-500/50 text-emerald-300 text-xs font-mono flex items-center gap-1.5 transition-all">
+                            <i data-lucide="radio" class="w-4 h-4"></i> Stream: Mining ON
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Canvas Viewport -->
+                <div class="relative w-full h-[450px] rounded-2xl border border-slate-800 bg-[#070a10] overflow-hidden shadow-inner">
+                    <canvas id="meshCanvas" class="w-full h-full cursor-crosshair"></canvas>
+                    
+                    <!-- Overlay Legend -->
+                    <div class="absolute bottom-4 left-4 glass-panel p-3 rounded-xl border border-slate-700 text-[11px] font-mono flex flex-wrap gap-4 text-gray-300 backdrop-blur-md">
+                        <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-cyber-cyan shadow-[0_0_8px_#00f3ff]"></span> Standard Node</span>
+                        <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-cyber-violet shadow-[0_0_8px_#8a2be2]"></span> WASM Aggregator</span>
+                        <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-rose-500 shadow-[0_0_8px_#ff0055]"></span> Disrupted Node</span>
+                        <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-emerald-400"></span> Mining Packet</span>
+                    </div>
+
+                    <!-- HUD Status overlay -->
+                    <div class="absolute top-4 right-4 glass-panel px-3 py-2 rounded-xl border border-slate-800 text-xs font-mono text-gray-300 flex flex-col items-end gap-1">
+                        <div>Topology Status: <span id="meshTopologyText" class="text-cyber-emerald font-bold">OPTIMAL</span></div>
+                        <div>Active Packets: <span id="activePacketsCount" class="text-cyber-cyan font-bold">48</span></div>
+                    </div>
+                </div>
+
+                <!-- Live Network Event Log Terminal -->
+                <div class="mt-4 glass-panel rounded-xl p-3 border border-slate-800 font-mono text-xs">
+                    <div class="flex items-center justify-between text-gray-400 border-b border-slate-800 pb-2 mb-2">
+                        <span class="flex items-center gap-1.5 text-cyber-cyan"><i data-lucide="terminal" class="w-3.5 h-3.5"></i> Swarm Mesh Event Journal</span>
+                        <span class="text-[10px] text-gray-500">REAL-TIME TELEMETRY LOG</span>
+                    </div>
+                    <div id="meshLogBox" class="h-20 overflow-y-auto custom-scrollbar space-y-1 text-gray-300">
+                        <!-- Dynamic logs populated via JS -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- DATA MINING & ANALYTICS DASHBOARD -->
+    <section id="analytics" class="py-12 relative">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="mb-8">
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-950/60 border border-emerald-500/40 text-emerald-400 text-xs font-mono mb-2">
+                    <i data-lucide="shield-check" class="w-3.5 h-3.5"></i> Privacy Protocol Active
+                </div>
+                <h2 class="font-display text-2xl sm:text-3xl font-bold text-white">Stream Mining & Telemetry Dashboard</h2>
+                <p class="text-gray-400 text-sm mt-1">Real-time edge feature extraction without raw data transfer.</p>
+            </div>
+
+            <!-- Charts Grid -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Chart 1: Dark Data Mined vs Signal Latency -->
+                <div class="glass-panel p-5 rounded-2xl lg:col-span-2 border border-slate-800">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-sm font-bold text-white font-mono flex items-center gap-2">
+                            <i data-lucide="activity" class="text-cyber-cyan w-4 h-4"></i> Dark Data Mining vs Edge Latency
+                        </h3>
+                        <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 text-cyber-cyan">LIVE STREAM</span>
+                    </div>
+                    <div class="h-64 relative">
+                        <canvas id="chartLatencyData"></canvas>
+                    </div>
+                </div>
+
+                <!-- Privacy & Zero-Knowledge Status Gauge Card -->
+                <div class="glass-panel p-5 rounded-2xl border border-slate-800 flex flex-col justify-between">
+                    <div>
+                        <h3 class="text-sm font-bold text-white font-mono flex items-center gap-2 mb-4">
+                            <i data-lucide="lock" class="text-cyber-emerald w-4 h-4"></i> Zero-Knowledge Guarantee
+                        </h3>
+                        <div class="text-center py-4">
+                            <div class="relative inline-flex items-center justify-center">
+                                <svg class="w-36 h-36">
+                                    <circle cx="72" cy="72" r="60" stroke="rgba(255,255,255,0.1)" stroke-width="10" fill="transparent" />
+                                    <circle cx="72" cy="72" r="60" stroke="#00ff88" stroke-width="10" fill="transparent" 
+                                            stroke-dasharray="377" stroke-dashoffset="0" stroke-linecap="round" class="transition-all duration-1000" />
+                                </svg>
+                                <div class="absolute flex flex-col items-center">
+                                    <span class="font-display text-2xl font-bold text-white">100%</span>
+                                    <span class="text-[10px] text-emerald-400 font-mono">ZK-SECURED</span>
+                                </div>
+                            </div>
+                        </div>
+                        <ul class="text-xs space-y-2 text-gray-300 font-mono mt-2">
+                            <li class="flex items-center gap-2"><i data-lucide="check" class="w-3.5 h-3.5 text-cyber-emerald"></i> Local Feature Embeddings Only</li>
+                            <li class="flex items-center gap-2"><i data-lucide="check" class="w-3.5 h-3.5 text-cyber-emerald"></i> 0 Raw Packet Data Transmitted</li>
+                            <li class="flex items-center gap-2"><i data-lucide="check" class="w-3.5 h-3.5 text-cyber-emerald"></i> Ambient RF Telemetry Mining</li>
+                        </ul>
+                    </div>
+                    <div class="pt-4 border-t border-slate-800 text-[11px] text-gray-400 font-mono">
+                        Verification Hash: <span class="text-cyber-cyan truncate block">0x8f2a...99b1e4c</span>
+                    </div>
+                </div>
+
+                <!-- Chart 2: Federated AI Training Convergence -->
+                <div class="glass-panel p-5 rounded-2xl border border-slate-800">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-sm font-bold text-white font-mono flex items-center gap-2">
+                            <i data-lucide="cpu" class="text-cyber-violet w-4 h-4"></i> Federated Model Convergence
+                        </h3>
+                        <span class="text-[10px] font-mono text-purple-400">Epoch #14,802</span>
+                    </div>
+                    <div class="h-56 relative">
+                        <canvas id="chartAiConvergence"></canvas>
+                    </div>
+                </div>
+
+                <!-- Chart 3: Node Compute Contribution -->
+                <div class="glass-panel p-5 rounded-2xl lg:col-span-2 border border-slate-800">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-sm font-bold text-white font-mono flex items-center gap-2">
+                            <i data-lucide="pie-chart" class="text-cyber-gold w-4 h-4"></i> Swarm Hardware Distribution
+                        </h3>
+                        <span class="text-[10px] font-mono text-yellow-400">Edge Heterogeneity</span>
+                    </div>
+                    <div class="h-56 relative">
+                        <canvas id="chartHardwareDist"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SWARM AI CODE AUTO-OPTIMIZER TERMINAL -->
+    <section id="code-optimizer" class="py-12 relative">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+                <div class="lg:col-span-5">
+                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyber-violet/20 border border-cyber-violet/50 text-cyber-violet text-xs font-mono mb-4">
+                        <i data-lucide="sparkles" class="w-3.5 h-3.5"></i> Self-Healing Codebase
+                    </div>
+                    <h2 class="font-display text-3xl font-bold text-white leading-tight">
+                        Autonomous Neural Architecture Search (NAS)
+                    </h2>
+                    <p class="text-gray-300 text-sm mt-3 leading-relaxed">
+                        AetherMind's engine continuously evaluates live edge performance metrics. When micro-bottlenecks are detected, the AI generates, compiles, and deploys WebAssembly patches across the entire swarm in milliseconds—without restarting nodes.
+                    </p>
+
+                    <div class="mt-6 space-y-4">
+                        <div class="flex items-start gap-3 glass-panel p-3 rounded-xl border border-slate-800">
+                            <div class="p-2 rounded-lg bg-cyber-cyan/10 text-cyber-cyan mt-0.5">
+                                <i data-lucide="git-commit" class="w-4 h-4"></i>
+                            </div>
+                            <div>
+                                <h4 class="text-xs font-bold text-white font-mono">Live WASM Hot-Swapping</h4>
+                                <p class="text-[11px] text-gray-400">Sub-millisecond binary replacement on active devices.</p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-start gap-3 glass-panel p-3 rounded-xl border border-slate-800">
+                            <div class="p-2 rounded-lg bg-cyber-violet/10 text-cyber-violet mt-0.5">
+                                <i data-lucide="shield" class="w-4 h-4"></i>
+                            </div>
+                            <div>
+                                <h4 class="text-xs font-bold text-white font-mono">Formal Verification Guardrails</h4>
+                                <p class="text-[11px] text-gray-400">AI-generated patches must satisfy zero-memory-leak mathematical proofs before swarm distribution.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-6">
+                        <button onclick="triggerNASPatch()" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-cyber-violet to-purple-800 hover:from-purple-600 hover:to-cyber-violet text-white text-xs font-mono font-bold shadow-lg shadow-cyber-violet/30 transition-all flex items-center gap-2">
+                            <i data-lucide="terminal" class="w-4 h-4"></i> Trigger Manual NAS Optimization Cycle
+                        </button>
+                    </div>
+                </div>
+
+                <!-- SCI-FI TERMINAL WINDOW -->
+                <div class="lg:col-span-7">
+                    <div class="glass-panel-glow rounded-2xl border border-cyber-cyan/30 overflow-hidden shadow-2xl">
+                        <!-- Terminal Titlebar -->
+                        <div class="bg-slate-900/90 px-4 py-3 border-b border-slate-800 flex items-center justify-between">
+                            <div class="flex items-center gap-2">
+                                <span class="w-3 h-3 rounded-full bg-rose-500 inline-block"></span>
+                                <span class="w-3 h-3 rounded-full bg-yellow-500 inline-block"></span>
+                                <span class="w-3 h-3 rounded-full bg-emerald-500 inline-block"></span>
+                                <span class="ml-2 font-mono text-xs text-gray-400">nas-optimizer-daemon --target=wasm32-unknown-unknown</span>
+                            </div>
+                            <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-cyber-cyan/10 border border-cyber-cyan/30 text-cyber-cyan">NAS RUNNING</span>
+                        </div>
+
+                        <!-- Code Terminal Body -->
+                        <div class="p-4 bg-[#05080e] font-mono text-xs h-96 overflow-y-auto custom-scrollbar leading-relaxed">
+                            <div class="text-gray-500">// AetherMind Neural Code Synthesis Engine v4.9</div>
+                            <div class="text-gray-500">// Autonomous JIT Routing Optimization Module</div>
+                            <div class="mt-2 text-cyber-cyan">$ nas-agent --analyze-telemetry --window=500ms</div>
+                            <div class="text-gray-400">[INFO] Telemetry chunk extracted: 142,890 active swarm vectors.</div>
+                            <div class="text-yellow-400">[WARN] High contention detected in Sector 7-B routing table.</div>
+                            <div class="text-cyber-violet">[NAS] Synthesizing optimized Rust/WASM routing function...</div>
+                            
+                            <!-- Dynamic Typing Code Block Container -->
+                            <pre id="terminalCodeFeed" class="text-emerald-400 my-3 p-3 bg-slate-950 rounded-lg border border-slate-800 overflow-x-auto">
+<span class="text-purple-400">#[no_mangle]</span>
+<span class="text-blue-400">pub extern "C"</span> <span class="text-yellow-300">fn</span> <span class="text-cyber-cyan">optimize_routing_mesh</span>(node_density: <span class="text-rose-400">u32</span>, latency_ms: <span class="text-rose-400">f32</span>) -&gt; <span class="text-rose-400">u32</span> {
+    <span class="text-gray-500">// Dynamic WASM kernel patch generated by Swarm NAS</span>
+    <span class="text-yellow-300">let</span> dynamic_weight = (node_density <span class="text-cyber-cyan">as</span> <span class="text-rose-400">f32</span>) * <span class="text-rose-400">0.00142</span>;
+    <span class="text-yellow-300">if</span> latency_ms &gt; <span class="text-rose-400">3.5</span> {
+        <span class="text-emerald-300">return</span> (<span class="text-rose-400">0x00F3FF</span> ^ (dynamic_weight <span class="text-cyber-cyan">as</span> <span class="text-rose-400">u32</span>));
+    }
+    <span class="text-rose-400">0x00FF88</span>
+}
+                            </pre>
+
+                            <div id="terminalLogFeed" class="space-y-1">
+                                <div class="text-gray-400">[PROOF] Formal verification check: <span class="text-emerald-400">PASSED (0 memory leaks)</span></div>
+                                <div class="text-cyber-cyan">[DEPLOY] Broadcasting compiled WASM bytecode to 142,890 edge nodes...</div>
+                                <div class="text-emerald-400">[SUCCESS] Mesh optimization patch applied in 14.2ms. Global latency dropped by 0.35ms.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- USE CASES & SYSTEM SIMULATOR -->
+    <section id="simulator" class="py-12 relative">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-3xl mx-auto mb-10">
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyber-cyan/10 border border-cyber-cyan/40 text-cyber-cyan text-xs font-mono mb-2">
+                    <i data-lucide="cpu" class="w-3.5 h-3.5"></i> Real-World Deployment
+                </div>
+                <h2 class="font-display text-3xl font-bold text-white">System Use Cases & Live Node Simulator</h2>
+                <p class="text-gray-400 text-sm mt-2">Simulate real-world deployment parameters and observe protocol resilience.</p>
+            </div>
+
+            <!-- Tab Buttons -->
+            <div class="flex justify-center mb-8">
+                <div class="glass-panel p-1.5 rounded-2xl flex gap-2 font-mono text-xs border border-slate-800">
+                    <button onclick="switchUseCaseTab('supercomputer')" id="tabBtnSupercomputer" class="tab-usecase-btn px-4 py-2 rounded-xl bg-cyber-cyan/20 border border-cyber-cyan text-cyber-cyan font-bold transition-all">Global Supercomputer</button>
+                    <button onclick="switchUseCaseTab('disaster')" id="tabBtnDisaster" class="tab-usecase-btn px-4 py-2 rounded-xl text-gray-400 hover:text-white transition-all">Zero-Tower Disaster Mesh</button>
+                    <button onclick="switchUseCaseTab('traffic')" id="tabBtnTraffic" class="tab-usecase-btn px-4 py-2 rounded-xl text-gray-400 hover:text-white transition-all">Predictive Traffic AI</button>
+                </div>
+            </div>
+
+            <!-- Interactive Simulator Grid -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                
+                <!-- Tab Details Panel -->
+                <div class="lg:col-span-5 glass-panel p-6 rounded-2xl border border-slate-800">
+                    <div id="usecaseContent">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+
+                <!-- Live Parameter Controls & Output Panel -->
+                <div class="lg:col-span-7 glass-panel-glow p-6 rounded-2xl border border-cyber-cyan/30">
+                    <h3 class="text-base font-bold text-white font-mono flex items-center gap-2 mb-6 border-b border-slate-800 pb-3">
+                        <i data-lucide="sliders" class="text-cyber-cyan w-5 h-5"></i> Swarm Parameter Tuning Sandbox
+                    </h3>
+
+                    <div class="space-y-6">
+                        <!-- Slider 1: Node Count -->
+                        <div>
+                            <div class="flex justify-between text-xs font-mono mb-2">
+                                <span class="text-gray-300">Edge Node Density (Devices)</span>
+                                <span id="sliderValueNodes" class="text-cyber-cyan font-bold">150,000</span>
+                            </div>
+                            <input type="range" id="simNodes" min="10000" max="500000" step="10000" value="150000" class="w-full" oninput="updateSimulation()">
+                        </div>
+
+                        <!-- Slider 2: Traffic Load -->
+                        <div>
+                            <div class="flex justify-between text-xs font-mono mb-2">
+                                <span class="text-gray-300">Network Packet Load (GB/s)</span>
+                                <span id="sliderValueLoad" class="text-cyber-violet font-bold">450 GB/s</span>
+                            </div>
+                            <input type="range" id="simLoad" min="50" max="2000" step="50" value="450" class="w-full" oninput="updateSimulation()">
+                        </div>
+
+                        <!-- Slider 3: Malicious Node Risk -->
+                        <div>
+                            <div class="flex justify-between text-xs font-mono mb-2">
+                                <span class="text-gray-300">Simulated Adversarial Attack Rate (%)</span>
+                                <span id="sliderValueThreat" class="text-rose-400 font-bold">5 %</span>
+                            </div>
+                            <input type="range" id="simThreat" min="0" max="40" step="1" value="5" class="w-full" oninput="updateSimulation()">
+                        </div>
+                    </div>
+
+                    <!-- Computed Output Metrics -->
+                    <div class="mt-8 pt-6 border-t border-slate-800 grid grid-cols-3 gap-4 text-center font-mono">
+                        <div class="bg-slate-900/80 p-3 rounded-xl border border-slate-800">
+                            <span class="text-[10px] text-gray-400 uppercase block">Simulated Latency</span>
+                            <span id="simResLatency" class="font-display text-lg font-bold text-cyber-cyan mt-1 block">2.1 ms</span>
+                        </div>
+                        <div class="bg-slate-900/80 p-3 rounded-xl border border-slate-800">
+                            <span class="text-[10px] text-gray-400 uppercase block">Byzantine Tolerance</span>
+                            <span id="simResTolerance" class="font-display text-lg font-bold text-cyber-emerald mt-1 block">100 % Safe</span>
+                        </div>
+                        <div class="bg-slate-900/80 p-3 rounded-xl border border-slate-800">
+                            <span class="text-[10px] text-gray-400 uppercase block">Effective TFLOPS</span>
+                            <span id="simResFlops" class="font-display text-lg font-bold text-cyber-violet mt-1 block">92.4 EFLOPS</span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="mt-20 border-t border-slate-800 glass-panel py-8 font-mono text-xs text-gray-400">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-4">
+            <div class="flex items-center space-x-2">
+                <i data-lucide="cpu" class="w-4 h-4 text-cyber-cyan"></i>
+                <span class="text-white font-bold">AetherMind Protocol</span>
+                <span>— Decentralized Edge AI & Network Paradigm</span>
+            </div>
+            <div class="flex items-center gap-6 text-gray-400">
+                <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-emerald-400"></span> Decentralized Grid</span>
+                <span>Zero Cloud Servers</span>
+                <span>Self-Healing NAS v4.9</span>
+            </div>
+            <div class="text-gray-500 text-[11px]">
+                © 2026 AetherMind Research Protocol. Open Autonomous Standard.
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            initMeshCanvas();
+            initCharts();
+            switchUseCaseTab('supercomputer');
+            updateSimulation();
+            startLiveTelemetryLoop();
+        });
+
+        // Toast Notification Helper
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `pointer-events-auto px-4 py-2.5 rounded-xl font-mono text-xs border shadow-lg transition-all duration-300 transform translate-x-10 opacity-0 flex items-center gap-2 ${
+                type === 'error' 
+                    ? 'bg-rose-950 border-rose-500/50 text-rose-200 shadow-rose-900/30' 
+                    : type === 'success' 
+                    ? 'bg-emerald-950 border-emerald-500/50 text-emerald-200 shadow-emerald-900/30' 
+                    : 'bg-slate-900 border-cyber-cyan/50 text-cyber-cyan shadow-cyber-cyan/20'
+            }`;
+            toast.innerHTML = `<i data-lucide="${type === 'error' ? 'alert-triangle' : type === 'success' ? 'check-circle' : 'info'}" class="w-4 h-4"></i> ${message}`;
+            container.appendChild(toast);
+            lucide.createIcons();
+
+            setTimeout(() => {
+                toast.classList.remove('translate-x-10', 'opacity-0');
+            }, 10);
+
+            setTimeout(() => {
+                toast.classList.add('translate-x-10', 'opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 4000);
+        }
+
+        let canvas, ctx;
+        let nodes = [];
+        let packets = [];
+        let miningStreamActive = true;
+        let animationFrameId;
+
+        function initMeshCanvas() {
+            canvas = document.getElementById('meshCanvas');
+            ctx = canvas.getContext('2d');
+            resizeCanvas();
+
+            window.addEventListener('resize', resizeCanvas);
+
+            // Populate initial nodes
+            nodes = [];
+            const nodeCount = 35;
+            for (let i = 0; i < nodeCount; i++) {
+                nodes.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    vx: (Math.random() - 0.5) * 0.8,
+                    vy: (Math.random() - 0.5) * 0.8,
+                    type: Math.random() > 0.8 ? 'wasm' : 'standard',
+                    status: 'active', // 'active' or 'disrupted'
+                    radius: Math.random() > 0.8 ? 6 : 4
+                });
+            }
+
+            // Spawn dynamic data packets
+            spawnPackets();
+
+            // Start animation loop
+            animateCanvas();
+
+            // Interactivity: add node on click
+            canvas.addEventListener('click', (e) => {
+                const rect = canvas.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                nodes.push({
+                    x, y,
+                    vx: (Math.random() - 0.5) * 1,
+                    vy: (Math.random() - 0.5) * 1,
+                    type: 'standard',
+                    status: 'active',
+                    radius: 5
+                });
+                logMeshEvent(`User spawned edge node at [${Math.round(x)}, ${Math.round(y)}]`);
+                showToast('Edge Node added to active Mesh grid', 'success');
+            });
+        }
+
+        function resizeCanvas() {
+            if (!canvas) return;
+            const container = canvas.parentElement;
+            canvas.width = container.clientWidth;
+            canvas.height = container.clientHeight;
+        }
+
+        function spawnPackets() {
+            packets = [];
+            for (let i = 0; i < 25; i++) {
+                if (nodes.length < 2) break;
+                const fromIdx = Math.floor(Math.random() * nodes.length);
+                let toIdx = Math.floor(Math.random() * nodes.length);
+                while (toIdx === fromIdx) toIdx = Math.floor(Math.random() * nodes.length);
+
+                packets.push({
+                    from: fromIdx,
+                    to: toIdx,
+                    progress: Math.random(),
+                    speed: 0.005 + Math.random() * 0.01
+                });
+            }
+        }
+
+        function animateCanvas() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw grid background overlay
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.02)';
+            ctx.lineWidth = 1;
+            const gridSize = 40;
+            for (let x = 0; x < canvas.width; x += gridSize) {
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, canvas.height);
+                ctx.stroke();
+            }
+            for (let y = 0; y < canvas.height; y += gridSize) {
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(canvas.width, y);
+                ctx.stroke();
+            }
+
+            // Update & Draw Connections
+            for (let i = 0; i < nodes.length; i++) {
+                for (let j = i + 1; j < nodes.length; j++) {
+                    const dx = nodes[i].x - nodes[j].x;
+                    const dy = nodes[i].y - nodes[j].y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+
+                    if (dist < 130) {
+                        const alpha = (1 - dist / 130) * 0.35;
+                        ctx.beginPath();
+                        ctx.moveTo(nodes[i].x, nodes[i].y);
+                        ctx.lineTo(nodes[j].x, nodes[j].y);
+
+                        if (nodes[i].status === 'disrupted' || nodes[j].status === 'disrupted') {
+                            ctx.strokeStyle = `rgba(255, 0, 85, ${alpha * 1.5})`;
+                        } else {
+                            ctx.strokeStyle = `rgba(0, 243, 255, ${alpha})`;
+                        }
+                        ctx.lineWidth = 1;
+                        ctx.stroke();
+                    }
+                }
+            }
+
+            // Update & Draw Packets
+            if (miningStreamActive) {
+                for (let p of packets) {
+                    if (!nodes[p.from] || !nodes[p.to]) continue;
+                    p.progress += p.speed;
+                    if (p.progress >= 1) {
+                        p.progress = 0;
+                        p.from = Math.floor(Math.random() * nodes.length);
+                        p.to = Math.floor(Math.random() * nodes.length);
+                    }
+
+                    const fx = nodes[p.from].x;
+                    const fy = nodes[p.from].y;
+                    const tx = nodes[p.to].x;
+                    const ty = nodes[p.to].y;
+
+                    const px = fx + (tx - fx) * p.progress;
+                    const py = fy + (ty - fy) * p.progress;
+
+                    ctx.beginPath();
+                    ctx.arc(px, py, 2.5, 0, Math.PI * 2);
+                    ctx.fillStyle = '#00ff88';
+                    ctx.shadowColor = '#00ff88';
+                    ctx.shadowBlur = 6;
+                    ctx.fill();
+                    ctx.shadowBlur = 0;
+                }
+            }
+
+            // Update & Draw Nodes
+            for (let n of nodes) {
+                n.x += n.vx;
+                n.y += n.vy;
+
+                // Bounce from bounds
+                if (n.x < 10 || n.x > canvas.width - 10) n.vx *= -1;
+                if (n.y < 10 || n.y > canvas.height - 10) n.vy *= -1;
+
+                ctx.beginPath();
+                ctx.arc(n.x, n.y, n.radius, 0, Math.PI * 2);
+
+                if (n.status === 'disrupted') {
+                    ctx.fillStyle = '#ff0055';
+                    ctx.shadowColor = '#ff0055';
+                    ctx.shadowBlur = 10;
+                } else if (n.type === 'wasm') {
+                    ctx.fillStyle = '#8a2be2';
+                    ctx.shadowColor = '#8a2be2';
+                    ctx.shadowBlur = 10;
+                } else {
+                    ctx.fillStyle = '#00f3ff';
+                    ctx.shadowColor = '#00f3ff';
+                    ctx.shadowBlur = 8;
+                }
+
+                ctx.fill();
+                ctx.shadowBlur = 0;
+            }
+
+            document.getElementById('activePacketsCount').innerText = miningStreamActive ? packets.length : 0;
+            animationFrameId = requestAnimationFrame(animateCanvas);
+        }
+
+        function addRandomNode() {
+            nodes.push({
+                x: Math.random() * (canvas.width - 40) + 20,
+                y: Math.random() * (canvas.height - 40) + 20,
+                vx: (Math.random() - 0.5) * 0.8,
+                vy: (Math.random() - 0.5) * 0.8,
+                type: Math.random() > 0.7 ? 'wasm' : 'standard',
+                status: 'active',
+                radius: 5
+            });
+            logMeshEvent(`Node #${nodes.length} connected to P2P Mesh swarm.`);
+            showToast('New edge node connected', 'info');
+        }
+
+        function simulateDisruption() {
+            let count = 0;
+            for (let n of nodes) {
+                if (Math.random() < 0.25) {
+                    n.status = 'disrupted';
+                    count++;
+                }
+            }
+            document.getElementById('meshTopologyText').innerText = 'ATTACK / DEGRADED';
+            document.getElementById('meshTopologyText').className = 'text-rose-500 font-bold animate-pulse';
+            logMeshEvent(`[ALERT] Adversarial disruption detected on ${count} nodes! Dynamic Swarm AI auto-realigning...`);
+            showToast(`Simulated attack on ${count} nodes! AI recovery triggered.`, 'error');
+
+            setTimeout(() => {
+                triggerGlobalReroute();
+            }, 1800);
+        }
+
+        function triggerGlobalReroute() {
+            for (let n of nodes) {
+                n.status = 'active';
+            }
+            document.getElementById('meshTopologyText').innerText = 'OPTIMAL';
+            document.getElementById('meshTopologyText').className = 'text-cyber-emerald font-bold';
+            spawnPackets();
+            logMeshEvent(`[NAS REROUTE] Routing tables updated. WASM micro-agents bypassed corrupted vectors.`);
+            showToast('Mesh routing auto-optimized via Swarm AI', 'success');
+        }
+
+        function toggleDataMiningStream() {
+            miningStreamActive = !miningStreamActive;
+            const btn = document.getElementById('toggleMiningBtn');
+            if (miningStreamActive) {
+                btn.innerHTML = `<i data-lucide="radio" class="w-4 h-4"></i> Stream: Mining ON`;
+                btn.className = 'px-3 py-2 rounded-xl bg-emerald-950/80 border border-emerald-500/50 text-emerald-300 text-xs font-mono flex items-center gap-1.5 transition-all';
+                logMeshEvent('[STREAM] Zero-Knowledge telemetry mining stream resumed.');
+            } else {
+                btn.innerHTML = `<i data-lucide="radio-off" class="w-4 h-4"></i> Stream: PAUSED`;
+                btn.className = 'px-3 py-2 rounded-xl bg-slate-800 border border-slate-700 text-gray-400 text-xs font-mono flex items-center gap-1.5 transition-all';
+                logMeshEvent('[STREAM] Telemetry stream paused by administrator.');
+            }
+            lucide.createIcons();
+        }
+
+        function logMeshEvent(msg) {
+            const box = document.getElementById('meshLogBox');
+            const time = new Date().toLocaleTimeString();
+            const logItem = document.createElement('div');
+            logItem.className = 'text-[11px] font-mono leading-tight flex gap-2';
+            logItem.innerHTML = `<span class="text-gray-500">[${time}]</span> <span>${msg}</span>`;
+            box.prepend(logItem);
+        }
+
+        let chartLatency, chartAi, chartHardware;
+
+        function initCharts() {
+            // Chart 1: Latency & Mining
+            const ctx1 = document.getElementById('chartLatencyData').getContext('2d');
+            chartLatency = new Chart(ctx1, {
+                type: 'line',
+                data: {
+                    labels: ['10s ago', '8s ago', '6s ago', '4s ago', '2s ago', 'Now'],
+                    datasets: [
+                        {
+                            label: 'Dark Data Mined (TB/s)',
+                            data: [12.4, 14.1, 15.8, 16.2, 17.5, 18.4],
+                            borderColor: '#ff0055',
+                            backgroundColor: 'rgba(255, 0, 85, 0.1)',
+                            fill: true,
+                            tension: 0.4
+                        },
+                        {
+                            label: 'Mesh Latency (ms)',
+                            data: [5.2, 4.1, 3.8, 2.9, 2.6, 2.4],
+                            borderColor: '#00f3ff',
+                            backgroundColor: 'rgba(0, 243, 255, 0.1)',
+                            fill: true,
+                            tension: 0.4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { labels: { color: '#94a3b8', font: { family: 'JetBrains Mono', size: 10 } } } },
+                    scales: {
+                        x: { ticks: { color: '#64748b', font: { family: 'JetBrains Mono', size: 10 } }, grid: { color: 'rgba(255,255,255,0.05)' } },
+                        y: { ticks: { color: '#64748b', font: { family: 'JetBrains Mono', size: 10 } }, grid: { color: 'rgba(255,255,255,0.05)' } }
+                    }
+                }
+            });
+
+            // Chart 2: AI Convergence
+            const ctx2 = document.getElementById('chartAiConvergence').getContext('2d');
+            chartAi = new Chart(ctx2, {
+                type: 'line',
+                data: {
+                    labels: ['E-1', 'E-2', 'E-3', 'E-4', 'E-5', 'E-6'],
+                    datasets: [{
+                        label: 'Federated Loss',
+                        data: [0.82, 0.45, 0.28, 0.14, 0.08, 0.03],
+                        borderColor: '#8a2be2',
+                        backgroundColor: 'rgba(138, 43, 226, 0.2)',
+                        fill: true,
+                        tension: 0.3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { ticks: { color: '#64748b', font: { family: 'JetBrains Mono', size: 10 } }, grid: { display: false } },
+                        y: { ticks: { color: '#64748b', font: { family: 'JetBrains Mono', size: 10 } }, grid: { color: 'rgba(255,255,255,0.05)' } }
+                    }
+                }
+            });
+
+            // Chart 3: Hardware Distribution
+            const ctx3 = document.getElementById('chartHardwareDist').getContext('2d');
+            chartHardware = new Chart(ctx3, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Smartphones (ARM)', 'Edge Routers (MIPS)', 'EV Compute Units', 'IoT Gateways'],
+                    datasets: [{
+                        data: [42, 28, 18, 12],
+                        backgroundColor: ['#00f3ff', '#8a2be2', '#00ff88', '#ffb700'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'right', labels: { color: '#94a3b8', font: { family: 'JetBrains Mono', size: 10 } } } }
+                }
+            });
+        }
+
+        function triggerNASPatch() {
+            const feed = document.getElementById('terminalCodeFeed');
+            const logFeed = document.getElementById('terminalLogFeed');
+            
+            showToast('Initializing NAS Neural Architecture Search cycle...', 'info');
+
+            const patchSnippet = `<span class="text-purple-400">#[no_mangle]</span>
+<span class="text-blue-400">pub extern "C"</span> <span class="text-yellow-300">fn</span> <span class="text-cyber-cyan">nas_rebalance_v492</span>(traffic_rate: <span class="text-rose-400">f32</span>) -&gt; <span class="text-rose-400">bool</span> {
+    <span class="text-gray-500">// Auto-generated patch for zero packet drops</span>
+    <span class="text-yellow-300">let</span> threshold = traffic_rate * <span class="text-rose-400">0.00042</span>;
+    <span class="text-emerald-300">return</span> threshold &lt; <span class="text-rose-400">1.0</span>;
+}`;
+            feed.innerHTML = patchSnippet;
+
+            const newLog = document.createElement('div');
+            newLog.className = 'text-cyber-cyan';
+            newLog.innerText = `[NAS MANUAL TRIGGER] Patch synthesized at ${new Date().toLocaleTimeString()}. Optimization index +1.4%`;
+            logFeed.appendChild(newLog);
+
+            showToast('WASM bytecode re-compiled & propagated to edge', 'success');
+        }
+
+        function filterPillars(category) {
+            const cards = document.querySelectorAll('.pillar-card');
+            const btns = document.querySelectorAll('.pillar-tab-btn');
+
+            btns.forEach(b => {
+                b.className = 'pillar-tab-btn px-3 py-1.5 rounded-lg glass-panel hover:border-cyber-cyan/50 text-gray-300';
+            });
+            event.target.className = 'pillar-tab-btn px-3 py-1.5 rounded-lg bg-cyber-cyan/20 border border-cyber-cyan text-cyber-cyan font-bold';
+
+            cards.forEach(card => {
+                if (category === 'all' || card.dataset.category === category) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+
+        const useCaseData = {
+            supercomputer: {
+                title: "Global Decentralized Supercomputer",
+                desc: "Harnessing unused processing cycles of billions of personal devices to form a global supercomputing grid capable of training AI models at 10% of cloud server cost.",
+                tag: "High Throughput Compute",
+                benefit1: "Zero central infrastructure overhead",
+                benefit2: "Fault-tolerant distributed execution",
+                metric: "84.6 EFLOPS Global"
+            },
+            disaster: {
+                title: "Zero-Tower Disaster Mesh Network",
+                desc: "When cellular towers or fiber links fail during natural disasters, nearby mobile phones and electric vehicles automatically assemble an emergency P2P communication grid.",
+                tag: "Emergency Resilience",
+                benefit1: "Operates without satellite or cell towers",
+                benefit2: "Multi-hop audio & text relaying",
+                metric: "99.999% Zero-Drop Mesh"
+            },
+            traffic: {
+                title: "Predictive Traffic & Smart City AI",
+                desc: "Vehicles mine telemetry data directly at intersections, predicting congestion 20 minutes before it forms and coordinating signal lights peer-to-peer.",
+                tag: "Real-time Edge Mining",
+                benefit1: "Sub-5ms localized decision latency",
+                benefit2: "Complete citizen location privacy",
+                metric: "-42% Urban Congestion"
+            }
+        };
+
+        function switchUseCaseTab(key) {
+            const data = useCaseData[key];
+            const container = document.getElementById('usecaseContent');
+
+            ['tabBtnSupercomputer', 'tabBtnDisaster', 'tabBtnTraffic'].forEach(id => {
+                const btn = document.getElementById(id);
+                if (btn) btn.className = 'tab-usecase-btn px-4 py-2 rounded-xl text-gray-400 hover:text-white transition-all';
+            });
+
+            if (key === 'supercomputer') document.getElementById('tabBtnSupercomputer').className = 'tab-usecase-btn px-4 py-2 rounded-xl bg-cyber-cyan/20 border border-cyber-cyan text-cyber-cyan font-bold';
+            if (key === 'disaster') document.getElementById('tabBtnDisaster').className = 'tab-usecase-btn px-4 py-2 rounded-xl bg-cyber-cyan/20 border border-cyber-cyan text-cyber-cyan font-bold';
+            if (key === 'traffic') document.getElementById('tabBtnTraffic').className = 'tab-usecase-btn px-4 py-2 rounded-xl bg-cyber-cyan/20 border border-cyber-cyan text-cyber-cyan font-bold';
+
+            container.innerHTML = `
+                <div class="inline-block px-2.5 py-1 rounded bg-cyber-violet/20 border border-cyber-violet/40 text-cyber-violet text-xs font-mono mb-3">
+                    ${data.tag}
+                </div>
+                <h3 class="text-xl font-bold text-white mb-3">${data.title}</h3>
+                <p class="text-gray-300 text-xs leading-relaxed mb-6">${data.desc}</p>
+
+                <div class="space-y-3 font-mono text-xs">
+                    <div class="flex items-center gap-2 text-emerald-400">
+                        <i data-lucide="check-circle-2" class="w-4 h-4"></i> ${data.benefit1}
+                    </div>
+                    <div class="flex items-center gap-2 text-emerald-400">
+                        <i data-lucide="check-circle-2" class="w-4 h-4"></i> ${data.benefit2}
+                    </div>
+                </div>
+
+                <div class="mt-6 p-3 rounded-xl bg-slate-900 border border-slate-800 text-center font-mono">
+                    <span class="text-[10px] text-gray-400 block uppercase">Key Benchmark</span>
+                    <span class="text-cyber-cyan text-sm font-bold mt-1 block">${data.metric}</span>
+                </div>
+            `;
+            lucide.createIcons();
+        }
+
+        function updateSimulation() {
+            const nodesCount = parseInt(document.getElementById('simNodes').value);
+            const loadGbs = parseInt(document.getElementById('simLoad').value);
+            const threatPct = parseInt(document.getElementById('simThreat').value);
+
+            document.getElementById('sliderValueNodes').innerText = nodesCount.toLocaleString();
+            document.getElementById('sliderValueLoad').innerText = `${loadGbs} GB/s`;
+            document.getElementById('sliderValueThreat').innerText = `${threatPct} %`;
+
+            // Calculate dynamic mock metrics
+            const calculatedLatency = (2.0 + (loadGbs / 1000) + (threatPct * 0.05) - (nodesCount / 300000)).toFixed(2);
+            const calculatedFlops = ((nodesCount * 0.6) / 1000).toFixed(1);
+            const ByzantineStatus = threatPct > 33 ? 'DEGRADED' : '100 % Safe';
+
+            document.getElementById('simResLatency').innerText = `${calculatedLatency} ms`;
+            document.getElementById('simResFlops').innerText = `${calculatedFlops} EFLOPS`;
+            
+            const tolElem = document.getElementById('simResTolerance');
+            tolElem.innerText = ByzantineStatus;
+            tolElem.className = threatPct > 33 ? 'font-display text-lg font-bold text-rose-500 mt-1 block' : 'font-display text-lg font-bold text-cyber-emerald mt-1 block';
+        }
+
+        function startLiveTelemetryLoop() {
+            setInterval(() => {
+                // Jitter active metrics slightly for live feel
+                const baseNodes = 142890;
+                const nodeJitter = Math.floor(Math.random() * 40) - 20;
+                document.getElementById('metricNodes').innerText = (baseNodes + nodeJitter).toLocaleString();
+
+                const latencyJitter = (2.3 + Math.random() * 0.3).toFixed(1);
+                document.getElementById('metricLatency').innerText = `${latencyJitter} ms`;
+
+                // Update charts live
+                if (chartLatency) {
+                    const newLatency = parseFloat(latencyJitter);
+                    const newData = (18.0 + Math.random() * 0.8).toFixed(1);
+                    chartLatency.data.datasets[0].data.shift();
+                    chartLatency.data.datasets[0].data.push(newData);
+                    chartLatency.data.datasets[1].data.shift();
+                    chartLatency.data.datasets[1].data.push(newLatency);
+                    chartLatency.update('none');
+                }
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
